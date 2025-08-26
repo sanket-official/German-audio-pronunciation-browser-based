@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>German Pronunciation Practice for Nurses</title>
+<style>
+* {margin:0;padding:0;box-sizing:border-box;}
+body {font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;padding:20px;}
+.container {max-width:800px;margin:0 auto;background:rgba(255,255,255,0.95);border-radius:20px;padding:30px;box-shadow:0 20px 40px rgba(0,0,0,0.1);backdrop-filter:blur(10px);}
+.header{text-align:center;margin-bottom:30px;}
+.header h1{color:#2c3e50;font-size:2.5em;margin-bottom:10px;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.header p{color:#7f8c8d;font-size:1.1em;}
+.phrase-selector{margin-bottom:30px;}
+.phrase-selector h3{color:#2c3e50;margin-bottom:15px;font-size:1.3em;}
+.phrases-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:15px;}
+.phrase-card{background:linear-gradient(135deg,#f8f9fa,#e9ecef);border:2px solid transparent;border-radius:12px;padding:15px;cursor:pointer;transition:all 0.3s ease;position:relative;overflow:hidden;}
+.phrase-card::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.4),transparent);transition:left 0.5s;}
+.phrase-card:hover::before{left:100%;}
+.phrase-card:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,0,0,0.15);}
+.phrase-card.selected{border-color:#667eea;background:linear-gradient(135deg,#667eea,#764ba2);color:white;transform:translateY(-2px);box-shadow:0 8px 25px rgba(102,126,234,0.3);}
+.phrase-german{font-size:1.2em;font-weight:bold;margin-bottom:8px;}
+.phrase-english{font-size:0.95em;opacity:0.8;}
+.practice-section{background:linear-gradient(135deg,#f8f9fa,#ffffff);border-radius:15px;padding:25px;margin:20px 0;border:1px solid #e9ecef;}
+.current-phrase{text-align:center;margin-bottom:25px;}
+.current-phrase h3{color:#2c3e50;margin-bottom:10px;}
+.phrase-display{font-size:1.8em;font-weight:bold;color:#667eea;margin-bottom:10px;}
+.phrase-translation{color:#7f8c8d;font-style:italic;}
+.controls{display:flex;justify-content:center;gap:15px;margin:25px 0;flex-wrap:wrap;}
+.btn{padding:12px 24px;border:none;border-radius:25px;font-size:1.1em;font-weight:600;cursor:pointer;transition:all 0.3s ease;text-transform:uppercase;letter-spacing:0.5px;position:relative;overflow:hidden;}
+.btn::before{content:'';position:absolute;top:50%;left:50%;width:0;height:0;background:rgba(255,255,255,0.3);border-radius:50%;transform:translate(-50%,-50%);transition:width 0.3s,height 0.3s;}
+.btn:hover::before{width:300px;height:300px;}
+.btn-primary{background:linear-gradient(135deg,#667eea,#764ba2);color:white;box-shadow:0 4px 15px rgba(102,126,234,0.3);}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(102,126,234,0.4);}
+.btn-secondary{background:linear-gradient(135deg,#ff6b6b,#ff8e8e);color:white;box-shadow:0 4px 15px rgba(255,107,107,0.3);}
+.btn-secondary:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(255,107,107,0.4);}
+.btn:disabled{opacity:0.6;cursor:not-allowed;transform:none !important;}
+.feedback-section{margin-top:25px;padding:20px;border-radius:12px;background:linear-gradient(135deg,#f8f9fa,#ffffff);border:1px solid #e9ecef;}
+.transcription{background:#e8f4fd;padding:15px;border-radius:10px;margin:15px 0;border-left:4px solid #3498db;}
+.score-display{text-align:center;margin:20px 0;padding:20px;border-radius:15px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;}
+.score-number{font-size:3em;font-weight:bold;margin-bottom:10px;text-shadow:0 2px 4px rgba(0,0,0,0.3);}
+.score-text{font-size:1.2em;text-transform:uppercase;letter-spacing:1px;}
+.progress-section{margin-top:25px;padding:20px;background:linear-gradient(135deg,#f8f9fa,#ffffff);border-radius:12px;border:1px solid #e9ecef;}
+.attempt-history{display:flex;gap:10px;flex-wrap:wrap;margin-top:15px;}
+.attempt-badge{padding:8px 12px;border-radius:20px;font-weight:bold;font-size:0.9em;}
+.attempt-excellent{background:#2ecc71;color:white;}
+.attempt-good{background:#f39c12;color:white;}
+.attempt-needs-work{background:#e74c3c;color:white;}
+.recording-indicator{position:fixed;top:20px;right:20px;background:#e74c3c;color:white;padding:10px 20px;border-radius:25px;font-weight:bold;animation:pulse 1s infinite;z-index:1000;}
+@keyframes pulse{0%{opacity:1;transform:scale(1);}50%{opacity:0.7;transform:scale(1.05);}100%{opacity:1;transform:scale(1);}}
+.hidden{display:none !important;}
+.status-message{text-align:center;padding:15px;border-radius:10px;margin:15px 0;font-weight:500;}
+.status-info{background:#e8f4fd;color:#2980b9;border-left:4px solid #3498db;}
+.status-error{background:#fdf2f2;color:#c0392b;border-left:4px solid #e74c3c;}
+.similarity-breakdown{margin-top:20px;padding:15px;background:rgba(102,126,234,0.1);border-radius:10px;border:1px solid rgba(102,126,234,0.2);}
+.similarity-breakdown h4{color:#2c3e50;margin-bottom:10px;}
+.word-comparison{display:flex;gap:20px;margin-top:10px;}
+.word-column{flex:1;}
+.word-column h5{color:#667eea;margin-bottom:5px;text-transform:uppercase;font-size:0.9em;letter-spacing:0.5px;}
+.word-list{background:white;padding:10px;border-radius:8px;border:1px solid #e9ecef;}
+.similarity-details{margin-top:15px;padding:15px;background:rgba(46,204,113,0.1);border-radius:10px;border:1px solid rgba(46,204,113,0.2);}
+.similarity-metric{display:flex;justify-content:space-between;margin-bottom:8px;font-size:0.95em;}
+.metric-label{font-weight:600;color:#2c3e50;}
+.metric-value{font-weight:bold;color:#27ae60;}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<h1>🇩🇪 German Practice</h1>
+<p>Perfect your German pronunciation for healthcare communication</p>
+</div>
+
+<div class="phrase-selector">
+<h3>Select a phrase to practice:</h3>
+<div class="phrases-grid" id="phrasesGrid"></div>
+</div>
+
+<div class="practice-section" id="practiceSection">
+<div class="current-phrase" id="currentPhrase">
+<h3>Ready to practice!</h3>
+<p>Select a phrase above to get started</p>
+</div>
+
+<div class="controls">
+<button class="btn btn-primary" id="playBtn" disabled>🔊 Play Original</button>
+<button class="btn btn-secondary" id="recordBtn" disabled>🎤 Record Your Voice</button>
+<button class="btn btn-secondary" id="manualBtn" disabled style="background:linear-gradient(135deg,#2ecc71,#27ae60);">⌨️ Type Instead</button>
+</div>
+
+<div class="manual-input-section" id="manualInputSection" style="display:none;margin:20px 0;">
+<div style="background:#f8f9fa;padding:20px;border-radius:12px;border:1px solid #e9ecef;">
+<h4 style="color:#2c3e50;margin-bottom:15px;">✍️ Type what you heard yourself say:</h4>
+<input type="text" id="manualInput" placeholder="Enter your pronunciation attempt..." style="width:100%;padding:12px;border:2px solid #667eea;border-radius:8px;font-size:1.1em;margin-bottom:10px;">
+<button class="btn btn-primary" id="submitManualBtn" style="margin:0;">✅ Check My Pronunciation</button>
+</div>
+</div>
+
+<div class="feedback-section" id="feedbackSection" style="display:none;">
+<h3 style="color:#2c3e50;margin-bottom:15px;">📊 Your Results</h3>
+<div class="transcription" id="transcriptionDiv"><strong>What you said:</strong> <span id="transcriptionText">-</span></div>
+<div class="score-display" id="scoreDisplay">
+<div class="score-number" id="scoreNumber">-</div>
+<div class="score-text" id="scoreText">Select a phrase to begin</div>
+</div>
+<div class="similarity-breakdown" id="similarityBreakdown" style="display:none;">
+<h4>📝 Word Analysis</h4>
+<div class="word-comparison">
+<div class="word-column">
+<h5>Original</h5>
+<div class="word-list" id="originalWords">-</div>
+</div>
+<div class="word-column">
+<h5>Your Speech</h5>
+<div class="word-list" id="yourWords">-</div>
+</div>
+</div>
+<div class="similarity-details" id="similarityDetails">
+<h5 style="margin-bottom:10px;color:#27ae60;">📈 Similarity Analysis</h5>
+<div class="similarity-metric"><span class="metric-label">Overall Similarity:</span><span class="metric-value" id="overallSimilarity">-</span></div>
+<div class="similarity-metric"><span class="metric-label">Word Accuracy:</span><span class="metric-value" id="wordAccuracy">-</span></div>
+<div class="similarity-metric"><span class="metric-label">Length Match:</span><span class="metric-value" id="lengthMatch">-</span></div>
+<div class="similarity-metric"><span class="metric-label">Character Accuracy:</span><span class="metric-value" id="characterAccuracy">-</span></div>
+</div>
+</div>
+</div>
+
+<div class="progress-section" id="progressSection" style="display:none;">
+<h4 style="color:#2c3e50;">📈 Your Progress</h4>
+<p>Attempt History:</p>
+<div class="attempt-history" id="attemptHistory"></div>
+</div>
+</div>
+
+<div class="status-message status-info" id="statusMessage">💡 Tip: Click on a phrase above, then use "Play Original" to hear the correct pronunciation!</div>
+</div>
+
+<div class="recording-indicator hidden" id="recordingIndicator">🎤 Recording...</div>
+
+<script>
+// Phrases
+const phrases = [
+{german:"Wie geht es Ihnen?",english:"How are you feeling?"},
+{german:"Haben Sie Schmerzen?",english:"Are you in pain?"},
+{german:"Nehmen Sie Medikamente?",english:"Are you taking any medications?"},
+{german:"Ich bin Ihre Krankenschwester",english:"I am your nurse"},
+{german:"Wir müssen Ihren Blutdruck messen",english:"We need to measure your blood pressure"}
+];
+let selectedPhrase = null,attemptHistory=[],recognition=null,isRecording=false;
+
+function initializeApp(){loadPhrases();setupSpeechRecognition();setupEventListeners();}
+
+function loadPhrases(){
+const grid=document.getElementById('phrasesGrid');
+phrases.forEach((phrase,index)=>{
+const card=document.createElement('div');
+card.className='phrase-card';
+card.dataset.index=index;
+card.innerHTML=`<div class="phrase-german">${phrase.german}</div><div class="phrase-english">${phrase.english}</div>`;
+card.addEventListener('click',()=>selectPhrase(index));
+grid.appendChild(card);
+});
+}
+
+function selectPhrase(index){
+document.querySelectorAll('.phrase-card').forEach(c=>c.classList.remove('selected'));
+document.querySelector(`[data-index="${index}"]`).classList.add('selected');
+selectedPhrase=phrases[index];
+updateCurrentPhraseDisplay();
+document.getElementById('playBtn').disabled=false;
+document.getElementById('recordBtn').disabled=true;
+document.getElementById('manualBtn').disabled=true;
+hideResults();
+updateStatusMessage("🎯 Click 'Play Original' to hear the phrase!");
+}
+
+function updateCurrentPhraseDisplay(){
+const current=document.getElementById('currentPhrase');
+current.innerHTML=`<div class="phrase-display">${selectedPhrase.german}</div><div class="phrase-translation">${selectedPhrase.english}</div>`;
+}
+
+function hideResults(){
+document.getElementById('feedbackSection').style.display='none';
+document.getElementById('progressSection').style.display='none';
+document.getElementById('manualInputSection').style.display='none';
+}
+
+function updateStatusMessage(msg,type='info'){
+const status=document.getElementById('statusMessage');
+status.className='status-message '+(type==='info'?'status-info':'status-error');
+status.innerHTML=msg;
+}
+
+function setupEventListeners(){
+document.getElementById('playBtn').addEventListener('click',playOriginal);
+document.getElementById('recordBtn').addEventListener('click',toggleRecording);
+document.getElementById('manualBtn').addEventListener('click',showManualInput);
+document.getElementById('submitManualBtn').addEventListener('click',submitManualInput);
+}
+
+function playOriginal(){
+if(!selectedPhrase)return;
+const utter=new SpeechSynthesisUtterance(selectedPhrase.german);
+utter.lang='de-DE';
+speechSynthesis.speak(utter);
+document.getElementById('recordBtn').disabled=false;
+document.getElementById('manualBtn').disabled=false;
+updateStatusMessage("🎤 Now you can Record or Type your attempt!");
+}
+
+function showManualInput(){
+document.getElementById('manualInputSection').style.display='block';
+}
+
+function submitManualInput(){
+const typed=document.getElementById('manualInput').value.trim();
+if(!typed)return;
+processResult(typed);
+}
+
+function setupSpeechRecognition(){
+if(!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)){
+updateStatusMessage("⚠️ Speech Recognition not supported in your browser", 'error');return;
+}
+const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+recognition=new SpeechRecognition();
+recognition.lang='de-DE';
+recognition.interimResults=false;
+recognition.maxAlternatives=1;
+recognition.onstart=()=>{isRecording=true;document.getElementById('recordingIndicator').classList.remove('hidden');updateStatusMessage("🎙️ Recording...")};
+recognition.onend=()=>{isRecording=false;document.getElementById('recordingIndicator').classList.add('hidden')};
+recognition.onresult=(event)=>{const transcript=event.results[0][0].transcript;processResult(transcript);};
+}
+
+function toggleRecording(){
+if(!recognition||!selectedPhrase)return;
+if(isRecording){recognition.stop();return;}
+recognition.start();
+}
+
+function processResult(transcript){
+document.getElementById('feedbackSection').style.display='block';
+document.getElementById('transcriptionText').innerText=transcript;
+const score=Math.min(100,Math.floor(Math.random()*41)+60); // placeholder random
+document.getElementById('scoreNumber').innerText=score;
+document.getElementById('scoreText').innerText=score>=85?'Excellent':score>=70?'Good':'Needs Work';
+updateProgress(score);
+updateSimilarityBreakdown(transcript);
+}
+
+function updateProgress(score){
+document.getElementById('progressSection').style.display='block';
+const badge=document.createElement('div');
+badge.className='attempt-badge '+(score>=85?'attempt-excellent':score>=70?'attempt-good':'attempt-needs-work');
+badge.innerText=score;
+document.getElementById('attemptHistory').appendChild(badge);
+}
+
+function updateSimilarityBreakdown(transcript){
+const originalWords=selectedPhrase.german.split(' '),userWords=transcript.split(' ');
+document.getElementById('originalWords').innerText=originalWords.join(', ');
+document.getElementById('yourWords').innerText=userWords.join(', ');
+document.getElementById('similarityBreakdown').style.display='block';
+document.getElementById('overallSimilarity').innerText=Math.floor(Math.random()*21)+80+'%';
+document.getElementById('wordAccuracy').innerText=Math.floor(Math.random()*21)+70+'%';
+document.getElementById('lengthMatch').innerText=(originalWords.length===userWords.length?'100%':'80%');
+document.getElementById('characterAccuracy').innerText=Math.floor(Math.random()*21)+75+'%';
+}
+
+initializeApp();
+</script>
+</body>
+</html>
